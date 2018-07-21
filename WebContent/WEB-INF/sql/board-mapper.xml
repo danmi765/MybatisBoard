@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- Mapper.java namespace -->
+<mapper namespace="board" >
+
+	<resultMap type="boardBean" id="boardMapper">
+		<result property="idx" column="idx" />
+		<result property="title" column="title" />
+		<result property="content" column="content" />
+		<result property="writedate" column="writedate" />
+		<result property="bno" column="bno" />
+		<result property="totcmt" column="totcmt" />
+		<result property="filename" column="filename" />
+	</resultMap>
+	
+	<resultMap type="commentBean" id="commentMapper">
+		<result property="idx" column="idx" />
+		<result property="userid" column="userid" />
+		<result property="content" column="content" />
+		<result property="writedate" column="writedate" />
+		<result property="bno" column="bno" />
+	</resultMap>
+
+
+	<!-- basic -->
+ 	<select id="getAllList" resultMap="boardMapper">
+		SELECT B.idx, B.title, B.userid, B.writedate , B.bno, SUM(DECODE(C.idx, NULL, 0, 1)) totcmt 
+			FROM BOARD B, CMT C 
+				WHERE B.idx = C.bno(+) 
+					GROUP BY B.idx, B.title, B.userid, B.writedate, B.bno 
+						order by b.idx desc
+	</select>
+	
+	<select id="searchList" resultMap="boardMapper" parameterType="com.hkb.dto.BoardBean">
+		SELECT B.idx, B.title, B.userid, B.writedate , B.bno, SUM(DECODE(C.idx, NULL, 0, 1)) totcmt 
+			FROM BOARD B, CMT C
+				 WHERE B.idx = C.bno(+) and b.${option} like '%'|| #{keyword} ||'%' 
+				 	GROUP BY B.idx, B.title, B.userid, B.writedate, B.bno 
+				 		order by b.idx desc
+	</select>
+	
+	
+	<!-- gallery -->
+	<select id="getAllGallery" resultMap="boardMapper">
+		select idx, title, content, filename, writedate, bno, userid 
+			from gallery 
+				order by idx desc
+	</select>
+	
+	
+	
+	<select id="getViewByIdx" resultMap="boardMapper" parameterType="com.hkb.dto.BoardBean">
+		select idx, title, userid, writedate, content, bno <if test="tabletype == 'gallery'">, filename</if>
+			from ${tabletype} 
+				where idx=#{idx}
+	</select>
+	
+	<select id="getTotalCount" resultType="int" parameterType="com.hkb.dto.BoardBean">
+		select count(*) from ${tabletype}
+	</select>
+	
+	<select id="totalCountSearchList" resultType="int" parameterType="com.hkb.dto.BoardBean">
+		select count(*) 
+			from ${tabletype} 
+				where ${option} like '%'|| #{keyword} ||'%' 
+					order by idx desc
+	</select>
+	
+	<update id="modiContent" parameterType="com.hkb.dto.BoardBean">
+		update ${tabletype} set title=#{title}, content=#{content} where idx=#{idx}
+	</update>
+	
+	<delete id="deleteContent" >
+		delete from ${tabletype} where idx=#{idx}
+	</delete>
+	
+	<update id="UpdateBno">
+		update ${tabletype} set bno=(bno-1) where idx > #{idx}
+	</update>
+	
+	<insert id="insertContent" parameterType="com.hkb.dto.BoardBean">
+		insert into ${tabletype} 
+			values(board_seq.nextval, #{userid}, #{title}, #{content}, sysdate, #{bno} <if test="filename != null">, #{filename}</if>)
+	</insert>
+	
+	
+	
+	
+	
+	
+	
+	<!-- Comment -->
+	<select id="getTotalCmt" resultMap="commentMapper">
+		select idx, userid, content, writedate, bno from cmt where bno=#{idx} order by writedate desc
+	</select>
+	
+	<select id="getTotalCmtCount" resultType="int">
+		select count(*) from cmt where bno=#{idx}
+	</select>
+	
+	<insert id="insertCmt" parameterType="com.hkb.dto.CommentBean" >
+		insert into cmt values(cmt_seq.nextval, #{userid}, #{content}, sysdate, #{idx})
+	</insert>
+	
+	<delete id="deleteCmt">
+		delete from cmt where idx=#{idx}
+	</delete>
+	
+	<update id="updateCmt" parameterType="com.hkb.dto.CommentBean">
+		update cmt set content=#{content} where idx=#{idx}
+	</update>
+
+</mapper>

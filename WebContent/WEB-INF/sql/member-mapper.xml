@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- Mapper.java namespace -->
+<mapper namespace="member" >
+
+	<resultMap type="memberBean" id="memberMapper">
+		<result property="userid" column="userid" />
+		<result property="userpsw" column="userpsw" />
+		<result property="username" column="username" />
+		<result property="joindate" column="joindate" />
+		<result property="sex" column="sex" />
+		<result property="age" column="age" />
+	</resultMap>
+
+ 	<select id="loginCheck" resultMap="memberMapper">
+		SELECT * from member where userid=#{userid}
+	</select>
+	
+	<insert id="joinMember" parameterType="com.hkb.dto.MemberBean">
+		insert into member values(#{userid},#{userpsw},#{username},sysdate,#{sex},#{age})
+	</insert>
+	
+	<select id="getMemberByUserid" parameterType="com.hkb.dto.MemberBean">
+		select * from member where userid = #{userid}
+	</select>
+	
+	<update id="updateMember" parameterType="com.hkb.dto.MemberBean">
+		update member set username=#{username}, sex=#{sex}, age=#{age} where userid=#{userid}
+	</update>
+	
+	<update id="updateMemberPassword" parameterType="com.hkb.dto.MemberBean">
+		update member set userpsw = #{userpsw} where userid = #{userid}
+	</update>
+
+</mapper>
